@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import Navbar from './components/Navbar';
+import AIChatbox from './components/AIChatbox';
 import Landing from './pages/Landing';
 import { LoginPage, RegisterPage } from './pages/Auth';
 import Dashboard from './pages/Dashboard';
@@ -37,6 +38,7 @@ export default function App() {
     <AuthProvider>
       <BrowserRouter>
         <AppRoutes />
+        <AIChatbox />
         <Toaster position="top-right" toastOptions={{ style: { background:'#111318', color:'#e8eaf0', border:'1px solid #1e2230' } }} />
       </BrowserRouter>
     </AuthProvider>

@@ -2,6 +2,7 @@ const express = require('express');
 const { protect } = require('../middleware/auth');
 const Resume = require('../models/Resume');
 const { calculateATSScore } = require('../utils/atsCalculator');
+const { getResumeRecommendations, getChatResponse } = require('../utils/aiService');
 
 const router = express.Router();
 
@@ -35,6 +36,37 @@ router.post('/quick', async (req, res) => {
       return res.status(400).json({ message: 'Resume data and job description required' });
     const results = calculateATSScore(resumeData, jobDescription);
     res.json(results);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// POST /api/ats/recommendations  — get AI-powered recommendations
+router.post('/recommendations', protect, async (req, res) => {
+  try {
+    const { resumeId, jobDescription, atsResults } = req.body;
+    if (!resumeId || !jobDescription || !atsResults)
+      return res.status(400).json({ message: 'Resume ID, job description, and ATS results required' });
+
+    const resume = await Resume.findOne({ _id: resumeId, user: req.user._id });
+    if (!resume) return res.status(404).json({ message: 'Resume not found' });
+
+    const recommendations = await getResumeRecommendations(resume.toObject(), jobDescription, atsResults);
+    res.json({ recommendations });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// POST /api/ats/chat  — AI chat for resume advice
+router.post('/chat', protect, async (req, res) => {
+  try {
+    const { message, conversationHistory } = req.body;
+    if (!message)
+      return res.status(400).json({ message: 'Message required' });
+
+    const response = await getChatResponse(message, conversationHistory || []);
+    res.json({ response });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }

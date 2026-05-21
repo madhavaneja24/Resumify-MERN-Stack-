@@ -20,6 +20,8 @@ export default function ATSChecker() {
   const [loading, setLoading] = useState(false);
   const [selectedResume, setSelectedResume] = useState(null);
   const [downloadingPDF, setDownloadingPDF] = useState(false);
+  const [aiRecommendations, setAiRecommendations] = useState(null);
+  const [loadingRecommendations, setLoadingRecommendations] = useState(false);
 
   useEffect(() => {
     if (user) API.get('/resume').then(({ data }) => setResumes(data));
@@ -86,13 +88,32 @@ export default function ATSChecker() {
   const handleCheck = async () => {
     if (!selectedId) return toast.error('Select a resume first');
     if (jobDesc.trim().length < 50) return toast.error('Please paste a longer job description (50+ chars)');
-    setLoading(true); setResults(null);
+    setLoading(true); setResults(null); setAiRecommendations(null);
     try {
       const { data } = await API.post('/ats/check', { resumeId: selectedId, jobDescription: jobDesc });
       setResults(data);
       toast.success('ATS analysis complete!');
     } catch (err) { toast.error(err.response?.data?.message || 'Check failed'); }
     finally { setLoading(false); }
+  };
+
+  const handleGetRecommendations = async () => {
+    if (!results) return toast.error('Run ATS check first');
+    setLoadingRecommendations(true);
+    try {
+      const { data } = await API.post('/ats/recommendations', {
+        resumeId: selectedId,
+        jobDescription: jobDesc,
+        atsResults: results
+      });
+      setAiRecommendations(data.recommendations);
+      toast.success('AI recommendations generated!');
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to get recommendations');
+      setAiRecommendations(['Add the missing keywords from the job description to your resume', 'Include more quantifiable achievements in your experience section', 'Ensure your summary aligns with the job requirements']);
+    } finally {
+      setLoadingRecommendations(false);
+    }
   };
 
   const scoreColor = (score) => {
@@ -236,6 +257,43 @@ export default function ATSChecker() {
                         {results.keywords.missing.slice(0,20).map(k => <span key={k} className="badge badge-danger">{k}</span>)}
                       </div>
                     </div>
+                  )}
+                </div>
+
+                {/* AI Recommendations */}
+                <div className="card">
+                  <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:16}}>
+                    <h3 style={{margin:0}}>🤖 AI Recommendations</h3>
+                    {!aiRecommendations && (
+                      <button
+                        className="btn btn-primary btn-sm"
+                        onClick={handleGetRecommendations}
+                        disabled={loadingRecommendations}
+                      >
+                        {loadingRecommendations ? '⚡ Generating...' : 'Get AI Tips'}
+                      </button>
+                    )}
+                  </div>
+                  {loadingRecommendations && (
+                    <div style={{textAlign:'center', padding:'20px', color:'var(--text-muted)'}}>
+                      <div className={styles.spinner} style={{margin:'0 auto 10px'}} />
+                      <p>AI is analyzing your resume...</p>
+                    </div>
+                  )}
+                  {aiRecommendations && (
+                    <div className={styles.suggestions}>
+                      {aiRecommendations.map((rec, i) => (
+                        <div key={i} className={styles.suggestion}>
+                          <span className={styles.suggestionDot} style={{background:'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'}} />
+                          <span>{rec}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  {!aiRecommendations && !loadingRecommendations && (
+                    <p style={{color:'var(--text-muted)', fontSize:'0.9rem', textAlign:'center', padding:'10px'}}>
+                      Click "Get AI Tips" to receive personalized recommendations based on your resume and job description
+                    </p>
                   )}
                 </div>
 

@@ -1,11 +1,15 @@
-require('dotenv').config();
-
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const dotenv = require('dotenv');
+const path = require('path');
 
-dotenv.config();
+// Load .env from server directory
+dotenv.config({ path: path.join(__dirname, '.env') });
+
+// Debug: Log environment variables
+console.log('GEMINI_API_KEY exists:', !!process.env.GEMINI_API_KEY);
+console.log('GEMINI_API_KEY length:', process.env.GEMINI_API_KEY?.length);
 
 const app = express();
 
