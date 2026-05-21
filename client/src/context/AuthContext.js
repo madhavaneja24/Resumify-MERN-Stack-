@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useState } from 'react';
 import axios from 'axios';
 import BASE_URL from '../utils/api';
 
@@ -10,7 +10,7 @@ export const AuthProvider = ({ children }) => {
     return saved ? JSON.parse(saved) : null;
   });
   
-  const [loading, setLoading] = useState(false);
+  const loading = false;
 
   const login = async (email, password) => {
     const { data } = await axios.post(`${BASE_URL}/api/auth/login`, { email, password });
