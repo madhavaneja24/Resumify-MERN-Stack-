@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import API from '../utils/api';
+import axios from 'axios';
+import BASE_URL from '../utils/api';
 import toast from 'react-hot-toast';
 import ResumePreview from '../components/ResumePreview';
 import jsPDF from 'jspdf';
@@ -24,7 +25,11 @@ export default function ATSChecker() {
   const [loadingRecommendations, setLoadingRecommendations] = useState(false);
 
   useEffect(() => {
-    if (user) API.get('/resume').then(({ data }) => setResumes(data));
+    if (user) {
+      const token = localStorage.getItem('token');
+      axios.get(`${BASE_URL}/api/resume`, { headers: { Authorization: `Bearer ${token}` } })
+        .then(({ data }) => setResumes(data));
+    }
   }, [user]);
 
   useEffect(() => {
@@ -90,7 +95,8 @@ export default function ATSChecker() {
     if (jobDesc.trim().length < 50) return toast.error('Please paste a longer job description (50+ chars)');
     setLoading(true); setResults(null); setAiRecommendations(null);
     try {
-      const { data } = await API.post('/ats/check', { resumeId: selectedId, jobDescription: jobDesc });
+      const token = localStorage.getItem('token');
+      const { data } = await axios.post(`${BASE_URL}/api/ats/check`, { resumeId: selectedId, jobDescription: jobDesc }, { headers: { Authorization: `Bearer ${token}` } });
       setResults(data);
       toast.success('ATS analysis complete!');
     } catch (err) { toast.error(err.response?.data?.message || 'Check failed'); }
@@ -101,11 +107,12 @@ export default function ATSChecker() {
     if (!results) return toast.error('Run ATS check first');
     setLoadingRecommendations(true);
     try {
-      const { data } = await API.post('/ats/recommendations', {
+      const token = localStorage.getItem('token');
+      const { data } = await axios.post(`${BASE_URL}/api/ats/recommendations`, {
         resumeId: selectedId,
         jobDescription: jobDesc,
         atsResults: results
-      });
+      }, { headers: { Authorization: `Bearer ${token}` } });
       setAiRecommendations(data.recommendations);
       toast.success('AI recommendations generated!');
     } catch (err) {

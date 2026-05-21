@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { FiMessageSquare, FiX, FiSend, FiMessageCircle } from 'react-icons/fi';
-import API from '../utils/api';
+import axios from 'axios';
+import BASE_URL from '../utils/api';
 import toast from 'react-hot-toast';
 
 export default function AIChatbox() {
@@ -34,7 +35,7 @@ export default function AIChatbox() {
         content: m.content
       }));
 
-      const { data } = await API.post('/ats/chat', {
+      const { data } = await axios.post(`${BASE_URL}/api/ats/chat`, {
         message: userMessage,
         conversationHistory
       });

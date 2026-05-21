@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import API from '../utils/api';
+import axios from 'axios';
+import BASE_URL from '../utils/api';
 import toast from 'react-hot-toast';
 import styles from './Dashboard.module.css';
 
@@ -12,13 +13,18 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    API.get('/resume').then(({ data }) => setResumes(data)).catch(() => toast.error('Failed to load resumes')).finally(() => setLoading(false));
+    const token = localStorage.getItem('token');
+    axios.get(`${BASE_URL}/api/resume`, { headers: { Authorization: `Bearer ${token}` } })
+      .then(({ data }) => setResumes(data))
+      .catch(() => toast.error('Failed to load resumes'))
+      .finally(() => setLoading(false));
   }, []);
 
   const handleDelete = async (id) => {
     if (!window.confirm('Delete this resume?')) return;
     try {
-      await API.delete(`/resume/${id}`);
+      const token = localStorage.getItem('token');
+      await axios.delete(`${BASE_URL}/api/resume/${id}`, { headers: { Authorization: `Bearer ${token}` } });
       setResumes(prev => prev.filter(r => r._id !== id));
       toast.success('Resume deleted');
     } catch { toast.error('Delete failed'); }

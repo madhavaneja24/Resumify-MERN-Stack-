@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import API from '../utils/api';
+import axios from 'axios';
+import BASE_URL from '../utils/api';
 import toast from 'react-hot-toast';
 import ResumePreview from '../components/ResumePreview';
 import styles from './Builder.module.css';
@@ -32,15 +33,26 @@ export default function Builder() {
 
   useEffect(() => {
     if (id) {
-      API.get(`/resume/${id}`).then(({ data }) => setResume(data)).catch(() => toast.error('Failed to load resume')).finally(() => setLoading(false));
+      const token = localStorage.getItem('token');
+      axios.get(`${BASE_URL}/api/resume/${id}`, { headers: { Authorization: `Bearer ${token}` } })
+        .then(({ data }) => setResume(data))
+        .catch(() => toast.error('Failed to load resume'))
+        .finally(() => setLoading(false));
     }
   }, [id]);
 
   const save = async () => {
     setSaving(true);
     try {
-      if (id) { await API.put(`/resume/${id}`, resume); toast.success('Saved!'); }
-      else { const { data } = await API.post('/resume', resume); toast.success('Resume created!'); navigate(`/builder/${data._id}`); }
+      const token = localStorage.getItem('token');
+      if (id) {
+        await axios.put(`${BASE_URL}/api/resume/${id}`, resume, { headers: { Authorization: `Bearer ${token}` } });
+        toast.success('Saved!');
+      } else {
+        const { data } = await axios.post(`${BASE_URL}/api/resume`, resume, { headers: { Authorization: `Bearer ${token}` } });
+        toast.success('Resume created!');
+        navigate(`/builder/${data._id}`);
+      }
     } catch { toast.error('Save failed'); } finally { setSaving(false); }
   };
 
