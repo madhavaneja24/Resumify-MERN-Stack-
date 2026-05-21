@@ -14,7 +14,7 @@ console.log('GEMINI_API_KEY length:', process.env.GEMINI_API_KEY?.length);
 const app = express();
 
 // Middleware
-app.use(cors({ origin: process.env.CLIENT_URL || 'http://localhost:3000', credentials: true }));
+app.use(cors({ origin: 'https://resumify-mern-stack-git-main-madhavs-projects-e5177c51.vercel.app', credentials: true }));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 
