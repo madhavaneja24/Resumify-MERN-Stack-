@@ -15,7 +15,11 @@ const app = express();
 
 // Middleware
 app.use(cors({
-  origin: 'https://resumify-mern-stack-git-main-madhavs-projects-e5177c51.vercel.app',
+  origin: [
+    'https://resumify-mern-stack.vercel.app',
+    'https://resumify-mern-stack-git-main-madhavs-projects-e5177c51.vercel.app',
+    'http://localhost:3000'
+  ],
   credentials: true
 }));
 
